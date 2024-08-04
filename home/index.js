@@ -2105,7 +2105,7 @@ const searchInput=document.getElementById('searchInput');
     
 }
 
-
+// some change
 async function fetchTableStatus(tableId) {
     try {
         const response = await fetch('./fetchTableStatus.php', {
