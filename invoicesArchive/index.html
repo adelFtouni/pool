@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoices Table</title>
+    <style>
+   /* Global Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 200px 1fr; /* Sidebar takes 200px width, main content takes remaining space */
+    min-height: 100vh; /* Ensure full viewport height */
+}
+
+.sidebar {
+    width: 100%; /* Full width of sidebar */
+    background-color: darkblue;
+    padding-top: 20px;
+    color: white;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px 16px;
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+}
+
+.sidebar a:hover {
+    background-color: blue;
+}
+
+.main-content {
+    padding: 20px;
+}
+
+.container {
+    width: 90%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 50%;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 1em;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+}
+
+.invoice-table {
+    width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse;
+    background-color: #f9f9f9;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+}
+
+.invoice-table th {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+}
+
+.invoice-table td {
+    background-color: #ffffff;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.invoice-table:nth-of-type(odd) td {
+    background-color: #f2f2f2;
+}
+
+.invoice-table caption {
+    caption-side: top;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.tables-container {
+    margin-top: 20px;
+}
+
+    </style>
+</head>
+<body>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Invoices Table</title>
+        <link rel="stylesheet" href="styles.css"> <!-- Link to your external CSS file -->
+    </head>
+    <body>
+        <div class="grid-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <a href="../home/index.html"><h3>إستراحة أرزة لبنان</h3></a>
+                <a href="../item/Stocks.php">المخزن</a>
+                <a href="../dollars/dollar.php">سعر الصرف</a>
+                <a href="../sales/sales.html">مبيعات</a>
+                <a href="../invoicesArchive/index.html">أرشيف الفواتير</a>
+                <a href="../user/login.php" class="logout">تسجيل الخروج</a>
+            </div>
+    
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="container">
+                    <h1>Invoices</h1>
+                    <input type="date" id="dateSelect" class="form-control">
+                    <button id="fetch-invoices-button" class="btn">عرض الفوانير</button>
+                    <h1 id="total-sales"></h1>
+                    <h1 id="total-sales-dollar"></h1>
+    
+                    <div id="tables-container" class="tables-container"></div>
+                </div>
+            </div>
+        </div>
+    
+        <script src="script.js"></script> <!-- Link to your JavaScript file -->
+    </body>
+    </html>
+    
+    <script>
+        let rateUSD; // Variable to store the fetched dollar rate
+        let total;
+        async function fetchInvoicesByDate(selectedDate) {
+    try {
+        const response = await fetch('./fetchInvoices.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ selectedDate: selectedDate })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        console.log('Data:', data);
+
+        // Populate tables with invoices data
+        populateTables(data.invoices);
+
+        // Calculate and display total sales for the day
+        const totalSales = calculateTotalSales(data.invoices);
+        displayTotalSales(totalSales);
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
+function populateTables(invoices) {
+    const container = document.getElementById('tables-container');
+    container.innerHTML = ''; // Clear existing tables
+
+    let total = 0; // Initialize total variable to accumulate all totals
+
+    invoices.forEach(invoice => {
+        const tableElement = document.createElement('table');
+        tableElement.className = 'invoice-table';
+
+        const tableCaption = document.createElement('caption');
+
+        let createdAtDate = new Date(invoice.createdAt);
+
+// Step 2: Add one hour to the Date object
+createdAtDate.setHours(createdAtDate.getHours() + 4);
+
+// Step 3: Format the updated Date object back to a string in the same format
+// Here we're formatting it as "YYYY-MM-DD HH:mm:ss"
+let updatedCreatedAt = createdAtDate.toISOString().slice(0, 19).replace('T', ' ');
+console.log(updatedCreatedAt)
+        tableCaption.textContent = `Invoice ID: ${invoice.invoiceId}, Created At: ${updatedCreatedAt}, Customer Name: ${invoice.customerName}, Table Id: ${invoice.items[0].tableId}`;
+        tableElement.appendChild(tableCaption);
+
+        const tableHeader = `
+            <thead>
+                <tr>
+                    <th>Table ID</th>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Total Price (LBP)</th>
+                </tr>
+            </thead>
+        `;
+        tableElement.innerHTML += tableHeader;
+
+        const tableBody = document.createElement('tbody');
+        let totalInvoicePrice = 0;
+
+        invoice.items.forEach(item => {
+            const row = document.createElement('tr');
+
+            const tableIdCell = document.createElement('td');
+            tableIdCell.textContent = item.tableId;
+            row.appendChild(tableIdCell);
+
+            const itemNameCell = document.createElement('td');
+            itemNameCell.textContent = item.itemName;
+            row.appendChild(itemNameCell);
+
+            const quantityCell = document.createElement('td');
+            quantityCell.textContent = item.quantity;
+            row.appendChild(quantityCell);
+
+            const totalPriceCell = document.createElement('td');
+            totalPriceCell.textContent = item.totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            row.appendChild(totalPriceCell);
+
+            totalInvoicePrice += item.totalPrice;
+
+            tableBody.appendChild(row);
+        });
+
+        // Add the total price row for LBP
+        const totalRowLBP = document.createElement('tr');
+        const totalLabelCellLBP = document.createElement('td');
+        totalLabelCellLBP.colSpan = 3;
+        totalLabelCellLBP.style.textAlign = 'right';
+        totalLabelCellLBP.textContent = 'Total (LBP):';
+        totalRowLBP.appendChild(totalLabelCellLBP);
+
+        const totalPriceCellLBP = document.createElement('td');
+        totalPriceCellLBP.textContent = totalInvoicePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        totalRowLBP.appendChild(totalPriceCellLBP);
+
+        totalRowLBP.style.fontWeight = 'bold';
+        tableBody.appendChild(totalRowLBP);
+
+        tableElement.appendChild(tableBody);
+        container.appendChild(tableElement);
+
+        total += totalInvoicePrice; // Accumulate total for all invoices
+    });
+
+    console.log(total); // Log the total to the console
+    displayTotalSales(total)
+}
+
+
+
+function calculateTotalSales(tables) {
+    let totalSales = 0;
+    tables.forEach(table => {
+        Object.values(table.invoices).forEach(invoice => {
+            invoice.items.forEach(item => {
+                totalSales += item.total_price;
+            });
+        });
+    });
+    console.log(totalSales);
+    return totalSales;
+}
+
+function displayTotalSales(totalSales) {
+    const totalSalesContainer = document.getElementById('total-sales');
+    totalSalesContainer.textContent = `Total Sales for the Day LBP : ${totalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    //
+
+    const totalSalesContainerd = document.getElementById('total-sales-dollar');
+    totalSalesContainerd.textContent = `Total Sales for the Day $$: ${totalSales.toFixed(2)/rateUSD}`;
+}
+
+document.getElementById('fetch-invoices-button').addEventListener('click', () => {
+    const dateInput = document.getElementById('dateSelect');
+    const selectedDate = dateInput.value;
+    fetchInvoicesByDate(selectedDate);
+});
+
+
+async function fetchDollarValue() {
+    try {
+        const response = await fetch('../home/testRate.php');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const value = await response.text();
+        rateUSD = parseFloat(value); // Parse the fetched value as float to store rateUSD
+        console.log('Fetched rate USD:', rateUSD);
+        
+        // After fetching rateUSD, update the UI or perform any necessary operations
+        updateDollarValue(value, rateUSD); // Example function to update UI
+        
+    } catch (error) {
+        console.error('Error fetching dollar value:', error);
+    }
+}
+
+fetchDollarValue(); // Fetch rate when the page loads
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Tables</title>
+    <link rel="stylesheet" href="./index.css">
+    <style>
+        /* Styling the table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Styling the search input */
+        #searchInput {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        #customerName {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        /* Styling the search results container */
+        #searchResults {
+            margin-bottom: 20px;
+            display: none; /* Initially hide search results */
+        }
+
+        /* Styling each search result item */
+        .search-result-item {
+            padding: 10px;
+            border: 1px solid black;
+            margin: 2px 0;
+            cursor: pointer;
+            background-color: #fafafa;
+        }
+
+        .search-result-item:hover {
+            background-color: #e0e0e0;
+        }
+
+        .search-result-item.selected {
+            background-color: #b3d9ff; /* Light blue */
+        }
+        .modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000; /* Ensure the modal appears over other content */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5); /* Semi-transparent background */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; /* Center the modal */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px; /* Maximum width */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Add shadow for a popup effect */
+}
+
+.close-button {
+    color: white;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    background: #130f9e;
+    padding: 5px; /* Removed space between 5 and px */
+}
+
+
+.close-button:hover,
+.close-button:focus {
+    
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#totalPrice {
+    font-weight: bold;
+}
+
+#invoiceTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+#invoiceTable th, #invoiceTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#invoiceTable th {
+    background-color: #f2f2f2;
+}
+/* Modal styles */
+.item-box {
+    background-color: #007BFF; /* Blue color */
+    color: white;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+}
+.logout {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #ff0000;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    width: 100px;
+    margin-left: 10px;
+    font-weight: bold;
+}
+.logout:hover {
+    background-color: #0056b3;
+}
+
+/* Base styles for items */
+.item-box {
+    padding: 10px;
+    margin: 5px;
+    display: inline-block;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Background and text colors */
+.blue-bg {
+    background-color: blue;
+}
+
+.white-text {
+    color: white;
+}
+
+/* Hover effect */
+.item-box:hover {
+    background-color: darkblue;
+}
+/* Base styles for category container */
+.category-container {
+    margin-bottom: 20px;
+}
+
+/* Style for category header */
+.category-container h2 {
+    margin: 0;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Style for item list container */
+.item-list-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Adjust as needed */
+    padding: 10px;
+}
+
+/* Base styles for items */
+.item-box {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Background and text colors */
+.blue-bg {
+    background-color: blue;
+    color: white;
+}
+
+/* Hover effect */
+.item-box:hover {
+    background-color: darkblue;
+}
+.special-table {
+    width: 300px;
+    background-color: green;
+}
+
+.table[data-table-id="41"] {
+    padding: 1px;
+    width: 50px;
+    height: 50px;
+    background-color: darkblue; /* Set dark blue background */
+    color: white; /* Set text color to white */
+    border: 1px solid #ccc;
+    display: inline-block;
+    margin: 5px;
+    text-align: center;
+    line-height: 50px;
+    cursor: pointer;
+}
+.table.selected {
+    background-color: yellow;
+    color: darkblue;
+    font-weight: bold;
+     /* Change background color on selection */
+}
+.save-invoice {
+    background-color: green;
+    color: white;
+    font-weight: bold;
+    width: 150px;
+    height: 50px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 50px; /* Centers text vertically */
+    
+    font-size: 28px; /* Adjust font size as needed */
+}
+
+
+
+.sidebar a:hover {
+    background-color:blue;
+}
+    </style>
+</head>
+
+<body>
+    <!-- Modal HTML -->
+<!-- Modal HTML structure -->
+
+
+  
+    <div class="sidebar">
+        <a href="../home/index.html"><h3>إستراحة أرزة لبنان</h3></a>
+        
+        <a href="../item/Stocks.php">المخزن</a>
+        <a href="../dollars/dollar.php">سعر الصرف</a>
+        <a href="../sales/sales.html">مبيعات اليوم</a>
+       
+        <a href="../invoicesArchive/index.html" > أرشيف الفواتير</a>
+        <a href="../user/login.php" class="logout">تسجيل الخروج</a>
+    </div>
+    <div class="content">
+        
+        <div class="half">
+            
+            <!-- First row, first column -->
+            <div class="quarter">
+                <h2 id="dollar-value">سعر الصرف الحالي </h2>
+                
+                <!-- <button id="closeAllTablesButton">Close All Tables</button> -->
+
+                <!-- Content for the first quarter -->
+                <div id="firstQuarter">
+                    <!-- Placeholder content -->
+                    <!-- <button id="tables1to23">Tables 1-23</button>
+                    <button id="tables24to46">Tables 24-46</button> -->
+                    <div id="tables-container">
+                        <!-- Tables will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+            <!-- First row, second column -->
+            <div class="quarter">
+                
+                <!-- Content for the second quarter -->
+                <div id="secondQuarter">
+                    
+                    <div id="items-container">
+                        <!-- Items will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="half">
+            <!-- Second row, first column -->
+            <div class="quarter">
+                <h2>الطاولة الحالية</h2>
+                <h1 id="total"></h1>
+                <h2 id="tableId"></h2>
+                <div id="thirdQuarter">
+                    <!-- Dynamic table will be inserted here -->
+
+                </div>
+                <h2>إسم الزبون</h2>
+                <div id="withoutName"></div>
+
+                <div class="search-container">
+                    <input
+                    onkeypress="reserveTable(event)"
+                    type="text" id="customerName" placeholder="customer name..."  />
+                   
+                </div>
+
+                <h2>بحث و اضافة صنف</h2>
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search for items..." onkeyup="searchItems()" />
+                    <div id="searchResults"></div>
+                </div>
+              
+
+                
+            </div>
+            <!-- Second row, second column -->
+            <div class="quarter">
+                <!-- <h3 id="totalSum">0</h3> -->
+                <h2>الفاتورة</h2>
+                <!-- Content for the fourth quarter -->
+                <div id="fourthQuarter">
+                    <!-- Placeholder content -->
+                    <table id="itemsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الإسم</th>
+                                <th>باركود</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>الإجمالي</th>
+                                <th>التاريخ</th>
+                                <th>حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            <!-- Table rows will be dynamically added here -->
+                        </tbody>
+                    </table>
+                    <div id="invoiceModal" class="modal">
+                        <div class="modal-content">
+                            <span class="close-button" id="closeModal">&times;</span>
+                            <h1>إستراحة أرزة لبنان</h1>
+                            <h2 id="cName">إسم الزّبون : </h2>
+                            <h3 id="tableInfo"></h3>
+                            <table id="invoiceTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>اسم الصنف</th>
+                                        <th>الكمية</th>
+                                        <th>السعر</th>
+                                        <th>الاجمالي</th>
+                                        <th>التاريخ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoiceTableBody">
+                                    <!-- Invoice items will be populated here -->
+                                </tbody>
+                                
+                            </table>
+                            <h3 id="totalPrice">إجمالي L.L: </h3>
+                            <h3 id="totalPriceDollar">إجمالي  $: </h3>
+                            <button id="printButton">حفظ و طباعة</button>
+                            <button id="cancelButton">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./index.js"></script>
+</body>
+
+</html>
